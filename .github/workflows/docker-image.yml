@@ -14,7 +14,8 @@ jobs:
       packages: write
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Login to GHCR
         uses: docker/login-action@v3
@@ -23,8 +24,16 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build
-        run: docker build -t ghcr.io/${{ github.repository_owner | lower }}/${{ github.event.repository.name | lower }}:latest .
-
-      - name: Push
-        run: docker push ghcr.io/${{ github.repository_owner | lower }}/${{ github.event.repository.name | lower }}:latest
+      - name: Build and Push
+        env:
+          
+          IMAGE_NAME: ${{ github.repository }}
+        run: |
+          # Convert to lowercase using bash tr
+          LOWER_IMAGE_NAME=$(echo "$IMAGE_NAME" | tr '[:upper:]' '[:lower:]')
+          
+          # Build
+          docker build -t ghcr.io/${LOWER_IMAGE_NAME}:latest .
+          
+          # Push
+          docker push ghcr.io/${LOWER_IMAGE_NAME}:latest
